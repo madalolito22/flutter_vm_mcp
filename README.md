@@ -97,6 +97,36 @@ Smoke-tested against a real Flutter Web app (Onda-app): `flutter_find` and
 including confirming `arg`/`objectGroup` as the right parameter names for
 `getChildrenSummaryTree`.
 
+Re-verified after the `textContains` addition, still against Onda-app, with
+`claude-in-chrome` doing the actual clicking at the rect `flutter_find`
+returned:
+
+| Query | Rect (page px) | Click landed on the right control? |
+| --- | --- | --- |
+| `text: "Skip for now"` | 827.9, 509, 89.6×16 | ✅ — advanced onboarding |
+| `type: "ElevatedButton"` (only one on screen) | 1222.3, 265, 117.4×32 | ✅ — opened the games list |
+| `text: "FILTERS"` | 46, 70, 48.7×12 | ✅ — opened the filters sheet |
+| `textContains: "find games"` | 1240.3, 273.5, 81.4×15 | ✅ — same button as the `ElevatedButton` row above, found via its inner `Text` this time |
+
+One open question from that last row: the *exact* `text: "FIND GAMES"` query
+returned zero matches on the first pass, but `textContains: "find games"`
+found a `Text` widget whose reported `text` field is the literal string
+`"FIND GAMES"` — same characters, same widget. Substring matching papers
+over whatever the difference was (extra whitespace? a non-breaking space
+from l10n tooling? stale isolate state at the time of the first query?), so
+it isn't blocking, but if anyone digs into `text`'s exact-match path, this is
+the repro to start from.
+
+The `scale = screenshotWidth / innerWidth` formula above was independently
+re-derived from a raw `pointerdown` calibration (send a click at a known
+`claude-in-chrome` coordinate, log `event.clientX/clientY` in the page,
+divide) before this doc was checked — both approaches landed on the same
+number in the same session (`1425 / 1745 ≈ 0.8166`), and two more
+`flutter_find` rects run through the documented formula (`INFO +` on the
+dashboard, a static `FEATURED` label) both clicked correctly — `INFO +`
+opened the Club Status popup on the first try. Six for six real clicks
+across two sessions now.
+
 ### Tips
 
 - If `text`/`textContains` don't match a widget you can clearly see on
