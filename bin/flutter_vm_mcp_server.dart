@@ -77,8 +77,18 @@ base class FlutterVmMcpServer extends MCPServer with ToolsSupport {
     inputSchema: Schema.object(
       properties: {
         'text': Schema.string(description: 'Exact visible text to search for'),
+        'textContains': Schema.string(
+          description:
+              'Case-insensitive substring of the visible text. Prefer this '
+              'over `text` when the label might be styled (e.g. rendered '
+              'in all caps) or split across spans.',
+        ),
         'type': Schema.string(
-          description: "Widget type name, e.g. 'ElevatedButton'",
+          description:
+              "Widget type name, e.g. 'ElevatedButton'. Try this if neither "
+              '`text` nor `textContains` match a widget you can clearly '
+              'see on screen — the app likely renders that label through a '
+              "custom design-system widget rather than a raw Text.",
         ),
         'key': Schema.string(description: "Substring of the widget's Key"),
         'maxResults': Schema.int(description: 'Defaults to 5'),
@@ -129,6 +139,7 @@ base class FlutterVmMcpServer extends MCPServer with ToolsSupport {
         isolateId: isolateId,
         args: {
           if (args['text'] case final text?) 'text': text,
+          if (args['textContains'] case final t?) 'textContains': t,
           if (args['type'] case final type?) 'type': type,
           if (args['key'] case final key?) 'key': key,
           if (args['maxResults'] case final n?) 'maxResults': '$n',
@@ -179,12 +190,7 @@ base class FlutterVmMcpServer extends MCPServer with ToolsSupport {
 
   /// Recursively fills in children via [_inspectorChildrenExtension], since
   /// `getRootWidget` alone doesn't nest the full tree in every Flutter
-  /// version. NOTE: `arg`/`objectGroup` as the parameter names for this
-  /// extension are the standard WidgetInspectorService convention but not
-  /// yet smoke-tested end to end here — if this comes back empty against a
-  /// real app, check the exact parameter names with a raw JSON-RPC call
-  /// first (a plain WebSocket script, same as used to validate the
-  /// getRootWidget/valueId shape) before assuming the code is wrong.
+  /// version.
   Future<Map<String, Object?>> _expand(
     VmService vmService,
     String isolateId,

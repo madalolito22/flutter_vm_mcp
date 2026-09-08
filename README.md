@@ -35,7 +35,8 @@ browser that isn't the one Flutter launches on its own.
 2. **The MCP server** (`bin/flutter_vm_mcp_server.dart`) connects to the VM
    Service over WebSocket and exposes three tools:
    - `flutter_connect(vmServiceUri)`
-   - `flutter_find(text?, type?, key?, maxResults?)` → real rects
+   - `flutter_find(text?, textContains?, type?, key?, maxResults?)` → real
+     rects
    - `flutter_tree(maxDepth?)` → widget tree via the inspector's standard
      extensions (no custom code needed)
 
@@ -91,14 +92,23 @@ at that coordinate.
 
 ## Status
 
-Initial MVP. `flutter_find` and the geometry extension are original, direct
-code (no dependency on Flutter's internal wire format). `flutter_tree` uses
-the inspector's standard extensions (`getRootWidget` +
-`getChildrenSummaryTree`) — the parameter names (`arg`, `objectGroup`)
-follow the usual `WidgetInspectorService` convention, but haven't been
-smoke-tested end to end against a real app yet; if `flutter_tree` comes back
-empty, check with a raw JSON-RPC call first before assuming the bug is
-elsewhere.
+Smoke-tested against a real Flutter Web app (Onda-app): `flutter_find` and
+`flutter_tree` both worked out of the box, no code changes needed —
+including confirming `arg`/`objectGroup` as the right parameter names for
+`getChildrenSummaryTree`.
+
+### Tips
+
+- If `text`/`textContains` don't match a widget you can clearly see on
+  screen, the app most likely renders that label through a custom
+  design-system widget rather than a raw `Text`/`EditableText`. Fall back to
+  `type` with the concrete widget class name (e.g. `ElevatedButton`) — use
+  `flutter_tree` to find it if you're not sure what it's called.
+- `flutter_find`'s rect is in real CSS page pixels. Getting your
+  browser-automation tool to click at that exact pixel is a separate
+  problem this package doesn't solve — e.g. `claude-in-chrome`'s
+  screenshot-based coordinates need a scale-factor correction that isn't
+  constant across sessions.
 
 ## License
 

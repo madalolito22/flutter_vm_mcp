@@ -24,14 +24,15 @@ void registerFlutterVmMcpExtension() {
     Map<String, String> parameters,
   ) async {
     final text = parameters['text'];
+    final textContains = parameters['textContains'];
     final type = parameters['type'];
     final key = parameters['key'];
     final maxResults = int.tryParse(parameters['maxResults'] ?? '') ?? 5;
 
-    if (text == null && type == null && key == null) {
+    if (text == null && textContains == null && type == null && key == null) {
       return developer.ServiceExtensionResponse.error(
         developer.ServiceExtensionResponse.invalidParams,
-        'Pass at least one of: text, type, key.',
+        'Pass at least one of: text, textContains, type, key.',
       );
     }
 
@@ -48,7 +49,13 @@ void registerFlutterVmMcpExtension() {
     void visit(Element element) {
       if (matches.length >= maxResults) return;
 
-      if (_matches(element, text: text, type: type, key: key)) {
+      if (_matches(
+        element,
+        text: text,
+        textContains: textContains,
+        type: type,
+        key: key,
+      )) {
         final rect = _globalRect(element);
         if (rect != null) {
           matches.add({
@@ -76,7 +83,13 @@ void registerFlutterVmMcpExtension() {
   });
 }
 
-bool _matches(Element element, {String? text, String? type, String? key}) {
+bool _matches(
+  Element element, {
+  String? text,
+  String? textContains,
+  String? type,
+  String? key,
+}) {
   if (type != null && element.widget.runtimeType.toString() != type) {
     return false;
   }
@@ -88,6 +101,13 @@ bool _matches(Element element, {String? text, String? type, String? key}) {
   }
   if (text != null && _textOf(element.widget) != text) {
     return false;
+  }
+  if (textContains != null) {
+    final widgetText = _textOf(element.widget)?.toLowerCase();
+    if (widgetText == null ||
+        !widgetText.contains(textContains.toLowerCase())) {
+      return false;
+    }
   }
   return true;
 }
