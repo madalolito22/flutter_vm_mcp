@@ -104,11 +104,16 @@ including confirming `arg`/`objectGroup` as the right parameter names for
   design-system widget rather than a raw `Text`/`EditableText`. Fall back to
   `type` with the concrete widget class name (e.g. `ElevatedButton`) — use
   `flutter_tree` to find it if you're not sure what it's called.
-- `flutter_find`'s rect is in real CSS page pixels. Getting your
-  browser-automation tool to click at that exact pixel is a separate
-  problem this package doesn't solve — e.g. `claude-in-chrome`'s
-  screenshot-based coordinates need a scale-factor correction that isn't
-  constant across sessions.
+- `flutter_find`'s rect is in real CSS page pixels. `claude-in-chrome`'s
+  `computer` tool clicks in the pixel space of its (possibly downscaled)
+  screenshot instead — its result reports that screenshot's own width and
+  height (e.g. `"1568x777"`), which is deterministic per call, not a
+  per-session constant to calibrate by hand. Before clicking a
+  `flutter_find` rect with it:
+  1. Read `window.innerWidth`/`innerHeight` (e.g. via
+     `claude-in-chrome`'s `javascript_tool`).
+  2. `scale = screenshotWidth / innerWidth` (same ratio for both axes).
+  3. Click at `(rect.x * scale, rect.y * scale)`.
 
 ## License
 
