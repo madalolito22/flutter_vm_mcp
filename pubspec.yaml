@@ -4,8 +4,8 @@ description: >-
   find the real on-screen geometry of widgets, so AI coding agents can click
   the right pixel instead of guessing from a screenshot.
 version: 0.1.0
-repository: https://github.com/alesterxf/flutter_vm_mcp
-issue_tracker: https://github.com/alesterxf/flutter_vm_mcp/issues
+repository: https://github.com/madalolito22/flutter_vm_mcp
+issue_tracker: https://github.com/madalolito22/flutter_vm_mcp/issues
 
 environment:
   sdk: ^3.7.0
